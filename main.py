@@ -16,32 +16,30 @@ config = load_config()
 # File to store key information
 KEY_INFO_FILE = 'key_info.json'
 
-# Expanded list of real words for invite codes
-REAL_WORDS = [
-    "hello", "world", "nice", "dam", "great", "good", "example", "test", "code", "script",
-    "bot", "discord", "invite", "link", "fun", "play", "join", "chat", "server", "team",
-    "game", "user", "group", "admin", "member", "role", "share", "event", "meeting", "project",
-    "update", "notification", "alert", "message", "news", "info", "discussion", "support", "feedback",
-    "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta", "iota", "kappa",
-    "lambda", "mu", "nu", "xi", "omicron", "pi", "rho", "sigma", "tau", "upsilon", "phi",
-    "chi", "psi", "omega", "apex", "bliss", "crux", "dawn", "edge", "flame", "gaze",
-    "halo", "ice", "jolt", "keystone", "lunar", "mystic", "nexus", "opal", "quest", "rift",
-    "soul", "tide", "void", "wave", "zenith", "aether", "bolt", "cascade", "drift", "ember",
-    "forge", "glow", "horizon", "illusion", "jungle", "krypton", "luminous", "maverick", "neon", "orbit",
-    "pulse", "quasar", "ripple", "storm", "thunder", "unity", "vortex", "whisper", "xenon", "yonder", "zen",
-    "rizz", "skibidi", "vibe", "clout", "flex", "drip", "mood", "slay", "sus", "pog",
-    "lit", "epic", "noob", "meta", "hype", "savage", "cringe", "chad", "genz", "meme",
-    "fomo", "dank", "woke", "ghost", "vortex", "nugget", "beast", "glitch", "zombie", "hacker",
-    "glow", "zap", "spice", "banger", "buzz", "frost", "neptune", "spartan", "phantom", "chaos",
-    "jester", "ranger", "vortex", "vivid", "stellar", "zenith", "flare", "byte", "cipher", "pixel"
+# List of rare 2 to 5-letter words for invite codes
+RARE_WORDS = [
+    "abyss", "blaze", "crisp", "dwarf", "eagle", "flint", "gleam", "haste", "ivory", "jolly",
+    "knack", "lunar", "mirth", "noble", "oasis", "pearl", "quilt", "rivet", "sphinx", "truce",
+    "ultra", "vivid", "waltz", "yacht", "zesty", "aegis", "bloom", "clash", "douse", "frost",
+    "glint", "heart", "icier", "joker", "karma", "lapse", "moist", "niche", "ocean", "plumb",
+    "quark", "rusty", "scent", "toxic", "unity", "vowel", "weary", "xenon", "yogic", "zonal",
+    "abide", "bliss", "crave", "douse", "eerie", "flame", "gloom", "hover", "juicy", "knoll",
+    "lunar", "mirth", "neat", "ocean", "peach", "quill", "rouge", "saber", "tango", "usher",
+    "vivid", "witty", "yodel", "zebra", "apex", "boast", "clasp", "drain", "ember", "flint",
+    "ghost", "haste", "ice", "jolt", "knee", "lava", "moss", "navy", "opal", "plow",
+    "quest", "rage", "seal", "tide", "urge", "vow", "whale", "yarn", "zoom", "area",
+    "bark", "charm", "dust", "eagle", "fuse", "gaze", "hike", "icon", "jade", "kind",
+    "link", "mark", "nail", "orbit", "peak", "rude", "slate", "tomb", "vent", "wolf",
+    "yell", "zone"
 ]
+
 
 # Set to track already processed invites
 processed_invites = set()
 
 def generate_single_word_invite():
-    """Generate an invite code from a single real word."""
-    return random.choice(REAL_WORDS)
+    """Generate an invite code from a rare 2 to 5-letter word."""
+    return random.choice(RARE_WORDS)
 
 def check_discord_invite(invite_code):
     """Check if a Discord invite link is valid by making a GET request."""
@@ -147,31 +145,9 @@ def prompt_for_key():
         print("[!] Wrong key!")
         return None
 
-def generate_and_check_invites(config, interval=1):
-    """Generate random single-word Discord invite codes, check their validity, and send results to the Discord webhook."""
+def generate_and_check_invites(config, session_key, ip_address, interval=1):
+    """Generate random rare 2 to 5-letter Discord invite codes, check their validity, and send results to the Discord webhook."""
     webhook_url = config['webhook_url']
-    
-    # Load existing key info
-    key_info = load_key_info()
-    
-    # Check if a key already exists, otherwise generate one
-    if not key_info:
-        session_key = generate_key()
-        ip_address = get_ip_address()
-
-        # Save the generated key information
-        key_info[session_key] = {"status": "free", "ip_address": ip_address}
-        save_key_info(key_info)
-
-        # Send key information to the webhook
-        message = "A new key has been generated."
-        embed_title = "New Key Generated"
-        embed_description = f"The key `{session_key}` has been generated and is available for use."
-        embed_color = config['embed']['color']
-        send_to_discord_webhook(webhook_url, message, embed_title, embed_description, embed_color, session_key, ip_address)
-    else:
-        session_key = list(key_info.keys())[0]
-        ip_address = key_info[session_key]['ip_address']
 
     while True:
         try:
@@ -232,11 +208,12 @@ if __name__ == "__main__":
 
     while True:
         command = input("Enter command ([1] for key input, [2] for generate backup): ").strip()
-        if command == '1':
+        if command == "1":
             user_key = prompt_for_key()
             if user_key:
-                generate_and_check_invites(config, interval=1)  # Adjust the interval as needed
-        elif command == '2':
+                ip_address = get_ip_address()
+                generate_and_check_invites(config, user_key, ip_address, interval=1)  # Adjust the interval as needed
+        elif command == "2":
             generate_backup_key()
         else:
-            print("[!] Invalid command.")
+            print("Invalid command. Please enter 1 or 2.")
